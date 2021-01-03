@@ -6,7 +6,7 @@ public class LinkedList {
 	private /*@nullable spec_public@*/ Node head = null;
 	private /*@nullable spec_public@*/ Node current = null;
 	// 0 = last position
-	private /*@ spec_public @*/ int elemNumber = 0;
+	private /*@spec_public@*/ int elemNumber = 0;
 
 	static private /*@spec_public@*/ class Node {
 		final public int data;
@@ -37,13 +37,34 @@ public class LinkedList {
 		this.head = new Node(val, this.head, this.elemNumber++);
 	}
 	
-
-	/* @ pure @ */ public int getLength() {
-		return this.head.index + 1;
+	/*@public normal_behaviour
+	   ensures ((this.head == null)&&(\return == 0))||((this.head != null)&&(\return ==(this.head.index+1)));
+	   assignable \strictly_nothing
+	 */
+	public int getLength() {		
+		if(this.head == null) {
+			return 0;
+		}
+		else {
+			return this.head.index + 1;
+		}
 	}
 
-	//@requires this.head != null;
-	//@ensures this.elemNumber == \old(this.elemNumber)-1;
+	/*@public normal_behaviour
+	  requires this.head != null;
+	  ensures \old(this.head.next) == this.head;
+	  ensures \old(this.head.next.data) == this.head.data;
+	  ensures \old(this.head.next.next) == this.head.next;
+	  ensures \old(this.head.next.index) == this.head.index;
+	  ensures this.elemNumber == \old(this.elemNumber)-1;
+	  ensures \return == \old(this.head.data);
+	  
+	  also
+	  
+	  public exceptional_behavior 
+	  requires this.head == null;
+	  signals_only (IndexOutOfBoundsException);
+	 */
 	public int pop() {
 		if(this.head != null) {
 			int retVal = this.head.data;
@@ -54,21 +75,25 @@ public class LinkedList {
 		throw new IndexOutOfBoundsException();
 	}
 
-	/* @ensures this.head == \old(this.head) &&
-	 * @\forall Node n; n.next == \old(n.next) &&
-	 * @\forall Node n; n.data == \old(n.data) &&
-	 * @\forall Node n; n.index == \old(n.index);
+	/*@public normal_behaviour
+	   assignable \strictly_nothing;
+	   assignable this.current;
 	 */
 	public void processAll() {
 		for (this.current = this.head; this.current != null; this.current = this.current.next) {
 			System.out.println(this.current.index + ": " + this.current.data);
-		}
+		}		
 	}
 
 	/*@public normal_behaviour
-	   requires -1 < index && index < this.getLength();
-	     
+	   requires -1 < index && index < this.getLength();	     
 	   assignable \strictly_nothing;
+	   
+	   also
+	   
+	   public exceptional_behavior
+	   requires index < 0 && this.getLength() <= index;
+	   signals_only (IndexOutOfBoundsException);
 	 */
 	public int getAtIndex(final int index) {
 		if (index < 0 || index > this.head.index) {

@@ -2,84 +2,73 @@ package finalExamples;
 
 public class IncrementTree {
 
-	private /* @ spec_public @ */ Node root;
-	private /* @ spec_public @ */ Node current;
+	private final /* @ spec_public @ */ Node root;
 
-	/* @public invariant \forall Node n: 
-	 * */
-	private /* @ spec_public @ */ class Node {
-		public Node left;
-		public Node right;
-		public int value;
+	private /* @ spec_public @ */static class Node {
+		public final Node left;
+		public final Node right;
+		public final int value;
 
-		void increment() {
-			value++;
+		//@public normal_behaviour
+		//@ensures retVal.value == this.value + 1;
+		//@assignable \nothing;
+		public Node increment() {
+			Node newLeft = null;
+			Node newRight = null;
 			if (this.left != null) {
-				left.increment();
+				newLeft = this.left.increment();
 			}
 			if (this.right != null) {
-				right.increment();
+				newRight = this.right.increment();
 			}
+			Node retVal = new Node(this.value + 1, newRight, newLeft);
+			return retVal;
 		}
 
-		/* @ pure @ */ boolean isConstant(int v) {
-			return value == v && left.isConstant(v) && right.isConstant(v);
-		}
-
-		// @ modifies(this.val)
-		// @ modifies(this.left)
-		// @ modifies(this.right)
-		public Node(final int val, final Node right, final Node left) {
+		//@assignable this.value;
+		//@assignable this.left;
+		//@assignable this.right;
+		public Node(final int val, final Node left, final Node right) {
 			this.value = val;
-			this.right = right;
 			this.left = left;
+			this.right = right;
 		}
 	}
 
-	public void insert(int val) {
-		if (this.root == null) {
-			this.root = new Node(val, null, null);
+	public IncrementTree(Node root) {
+		this.root = root;
+	}
+
+	//@public normal_behaviour
+	//@assignable \nothing;
+	//@ensures ((this.root ==null)&&(\return == null))||((this.root !=null)&&isBiggerByOne(this,\return));
+	public IncrementTree increment() {
+		if (this.root != null) {
+			IncrementTree it = new IncrementTree(this.root.increment());
+			return it;
 		} else {
-			this.insert2(val, this.root);
+			return null;
 		}
 	}
 
-	private /* @ spec_public @ */ void insert2(int val, Node n) {
-		if (val < n.value) {
-			if (n.left == null) {
-				n.left = new Node(val, null, null);
-			} else {
-				this.insert2(val, n.left);
-			}
-		} else {
-			if (n.right == null) {
-				n.right = new Node(val, null, null);
-			} else {
-				this.insert2(val, n.right);
-			}
-		}
-	}
-
-	public void increment() {
-		this.increment(this.root);
+	//@public normal_behaviour
+	//@assignable \strictly_nothing;
+	public static boolean isBiggerByOne(IncrementTree smal, IncrementTree big) {
+		return isBiggerByOne(smal.root, big.root);
 	}
 	
-	/* @ requires n.isConstant(x)
-	 * @ ensures n.isConstant(x+1)
-	 */
-	private /* @ spec_public @ */ void increment(Node n) {
-		if (n != null) {
-			n.value++;
-			this.increment(n.left);
-			this.increment(n.right);
-		}
+	//@public normal_behaviour
+	//@assignable \strictly_nothing;
+	private static boolean isBiggerByOne(Node smal, Node big) {
+		return smal.value == (big.value - 1) && isBiggerByOne(smal.left, big.left)
+				&& isBiggerByOne(smal.right, big.right);
 	}
 
-	/* @ pure @ */ public void print() {
+	public void print() {
 		this.print(this.root);
 	}
 
-	/* @ pure @ */ private /* @ spec_public @ */ void print(Node n) {
+	private void print(Node n) {
 		if (n != null) {
 			this.print(n.left);
 			System.out.print(n.value + " ");
@@ -87,16 +76,20 @@ public class IncrementTree {
 		}
 	}
 
+	//@public normal_behaviour
+	//@ensures \true;
 	public static void main(String[] args) {
-		IncrementTree it = new IncrementTree();
-		int[] a = new int[] { 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15 };
-		for (int i : a) {
-			it.insert(i);
-		}
-		it.print();
-		System.out.println();
-		it.increment();
-		it.print();
-
+		IncrementTree first = new IncrementTree(
+				new Node(4, 
+						new Node(2, 
+								new Node(1, null, null), 
+								new Node(3, null, null)),
+						new Node(6, 
+								new Node(5, null, null),
+								new Node(7, null, null))
+						)
+				);
+		IncrementTree second = first.increment();
+		assert(isBiggerByOne(first,second));
 	}
 }
