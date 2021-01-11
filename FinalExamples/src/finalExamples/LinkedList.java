@@ -3,25 +3,10 @@ package finalExamples;
 public class LinkedList {
 	//@public invariant this.elemNumber >= 0;
 	
-	private /*@nullable spec_public@*/ Node head = null;
-	private /*@nullable spec_public@*/ Node current = null;
+	private /*@nullable spec_public@*/ ListNode head = null;
+	private /*@nullable spec_public@*/ ListNode current = null;
 	// 0 = last position
-	private /*@spec_public@*/ int elemNumber = 0;
-
-	static private /*@spec_public@*/ class Node {
-		final public int data;
-		final public Node next;
-		final public int index;
-
-		//@assignable this.data;
-		//@assignable this.next;
-		//@assignable this.index;
-		Node(final int data, final Node next, final int index) {
-			this.data = data;
-			this.next = next;
-			this.index = index;
-		}
-	}
+	private /*@spec_public@*/ int elemNumber = 0;	
 
 	/*@public normal_behaviour
 	  ensures this.elemNumber == \old(this.elemNumber) + 1;
@@ -34,12 +19,12 @@ public class LinkedList {
 	  assignable this.head;
 	 */	 
 	public void push(final int val) {
-		this.head = new Node(val, this.head, this.elemNumber++);
+		this.head = new ListNode(val, this.head, this.elemNumber++);
 	}
 	
 	/*@public normal_behaviour
-	   ensures ((this.head == null)&&(\return == 0))||((this.head != null)&&(\return ==(this.head.index+1)));
-	   assignable \strictly_nothing
+	   ensures ((this.head == null)&&(\result == 0))||((this.head != null)&&(\result ==(this.head.index+1)));
+	   assignable \strictly_nothing;
 	 */
 	public int getLength() {		
 		if(this.head == null) {
@@ -57,13 +42,13 @@ public class LinkedList {
 	  ensures \old(this.head.next.next) == this.head.next;
 	  ensures \old(this.head.next.index) == this.head.index;
 	  ensures this.elemNumber == \old(this.elemNumber)-1;
-	  ensures \return == \old(this.head.data);
+	  ensures \result == \old(this.head.data);
 	  
 	  also
 	  
 	  public exceptional_behavior 
 	  requires this.head == null;
-	  signals_only (IndexOutOfBoundsException);
+	  signals_only IndexOutOfBoundsException;
 	 */
 	public int pop() {
 		if(this.head != null) {
@@ -93,7 +78,7 @@ public class LinkedList {
 	   
 	   public exceptional_behavior
 	   requires index < 0 && this.getLength() <= index;
-	   signals_only (IndexOutOfBoundsException);
+	   signals_only IndexOutOfBoundsException;
 	 */
 	public int getAtIndex(final int index) {
 		if (index < 0 || index > this.head.index) {
@@ -105,10 +90,25 @@ public class LinkedList {
 	}
 }
 
-class Test{
+class ListNode {
+	final public int data;
+	final public ListNode next;
+	final public int index;
+
+	//@assignable this.data;
+	//@assignable this.next;
+	//@assignable this.index;
+	ListNode(final int data, final ListNode next, final int index) {
+		this.data = data;
+		this.next = next;
+		this.index = index;
+	}
+}
+
+class ListTest{
 	//@public normal_behaviour
 	//@ensures true;
-	public void test() {
+	public static void main(String[] args) {
 		LinkedList ll = new LinkedList();
 		ll.push(23);
 		ll.push(42);
