@@ -1,29 +1,29 @@
 package finalExamples;
 
-public class LinkedList {
-	//@public invariant this.elemNumber >= 0;
-	
+public class LinkedList {	
+		
 	private /*@nullable spec_public@*/ ListNode head = null;
-	private /*@nullable spec_public@*/ ListNode current = null;
-	// 0 = last position
-	private /*@spec_public@*/ int elemNumber = 0;	
+
+	//@instance invariant this.getLength() > -1; 
 
 	/*@public normal_behaviour
-	  ensures this.elemNumber == \old(this.elemNumber) + 1;
 	  ensures this.head.next == \old(this.head);
 	  ensures this.head.data == val;
-	  ensures this.head.index == this.elemNumber-1;
-	  ensures (\forall int i; -1 < i && i < (this.elemNumber-1); this.getAtIndex(i) == \old(this.getAtIndex(i)));
-	  ensures this.getAtIndex(this.elemNumber-1) == val;
+	  ensures (\forall int i; -1 < i && i < this.getLength(); this.getAtIndex(i) == \old(this.getAtIndex(i)));
+	  ensures this.getAtIndex(this.getLength()-1) == val;
 	  
+	  ensures this.getLength() == \old(this.getLength())+1;
+	  ensures this.head.index == \old(this.getLength()); 
 	  assignable this.head;
 	 */	 
 	public void push(final int val) {
-		this.head = new ListNode(val, this.head, this.elemNumber++);
+		this.head = new ListNode(val, this.head);
 	}
 	
 	/*@public normal_behaviour
-	   ensures ((this.head == null)&&(\result == 0))||((this.head != null)&&(\result ==(this.head.index+1)));
+	   ensures \invariant_for(this);
+	   ensures ((this.head == null) ==> (\result == 0));
+	   ensures ((this.head != null) ==> (\result ==(this.head.index+1)));
 	   assignable \strictly_nothing;
 	 */
 	public int getLength() {		
@@ -41,7 +41,7 @@ public class LinkedList {
 	  ensures \old(this.head.next.data) == this.head.data;
 	  ensures \old(this.head.next.next) == this.head.next;
 	  ensures \old(this.head.next.index) == this.head.index;
-	  ensures this.elemNumber == \old(this.elemNumber)-1;
+	  ensures this.getLength() == \old(this.getLength())-1;
 	  ensures \result == \old(this.head.data);
 	  
 	  also
@@ -54,7 +54,6 @@ public class LinkedList {
 		if(this.head != null) {
 			int retVal = this.head.data;
 			this.head = this.head.next;
-			this.elemNumber--;
 			return retVal;			
 		}
 		throw new IndexOutOfBoundsException();
@@ -62,16 +61,16 @@ public class LinkedList {
 
 	/*@public normal_behaviour
 	   assignable \strictly_nothing;
-	   assignable this.current;
 	 */
 	public void processAll() {
-		for (this.current = this.head; this.current != null; this.current = this.current.next) {
-			System.out.println(this.current.index + ": " + this.current.data);
+		for (ListNode current = this.head; current != null; current = current.next) {
+			System.out.println(current.index + ": " + current.data);
 		}		
 	}
 
 	/*@public normal_behaviour
-	   requires -1 < index && index < this.getLength();	     
+	   requires -1 < index && index < this.getLength();	    
+	   ensures \invariant_for(this);	   
 	   assignable \strictly_nothing;
 	   
 	   also
@@ -81,27 +80,42 @@ public class LinkedList {
 	   signals_only IndexOutOfBoundsException;
 	 */
 	public int getAtIndex(final int index) {
-		if (index < 0 || index > this.head.index) {
+		if (index < 0 || this.getLength() <= index) {
 			throw new IndexOutOfBoundsException("Given index(" + index + "is out of list bounds.");
 		} else {
-			for (this.current = this.head; this.current.index != index; this.current = this.current.next);
-			return this.current.data;
+			ListNode current;
+			for (current = this.head; current.index != index; current = current.next);
+			return current.data;
 		}
 	}
 }
 
 class ListNode {
 	final public int data;
-	final public ListNode next;
+	final public /*@nullable@*/ ListNode next;
 	final public int index;
 
-	//@assignable this.data;
-	//@assignable this.next;
-	//@assignable this.index;
-	ListNode(final int data, final ListNode next, final int index) {
+	//@instance invariant (this.index > -1);
+	//@instance invariant (this.next != null) ==> (this.index == this.next.index + 1);
+	//@instance invariant (this.next == null) ==> (this.index == 0);
+
+	  
+	/*@public normal_behaviour
+	  requires (nextp == null) || (nextp.index > -1);
+	  ensures ((nextp != null) && (this.index == nextp.index + 1)) || ((nextp == null) && (this.index == 0));
+	  ensures \invariant_for(this);
+	  ensures true;
+	  assignable this.data, this.next, this.index;
+	 */
+	public ListNode(final int data, final ListNode nextp) {
 		this.data = data;
-		this.next = next;
-		this.index = index;
+		this.next = nextp;
+		if(nextp == null) {
+			this.index = 0;
+		}
+		else {
+			this.index = nextp.index+1;
+		}		
 	}
 }
 
