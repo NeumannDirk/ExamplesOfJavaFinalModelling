@@ -98,9 +98,8 @@ public final class LinkedList {
 	}	
 	
 	/*@public normal_behaviour
-	   requires this.head == current;
 	   requires current != null;
-	   requires (at >= 0 && at < this.getLength());
+	   requires (at >= 0 && at <= current.index);
 	   requires \invariant_for(current);
 	   requires \invariant_for(this.head);
 //	   ensures (at >= 0 && at < this.getLength());
@@ -112,14 +111,13 @@ public final class LinkedList {
 	   also
 	   
 	   public normal_behaviour
-	   requires (current == null || at < 0 || at > current.index);
+	   requires (at < 0 || at > current.index);
 	   ensures \result == null;
-	   ensures (current == null || at < 0 || at > current.index);
 	   assignable \strictly_nothing;
 	   accessible \nothing;
 	 */
-	public /*@nullable*/ ListNode getNode(final int at,/*@nullable*/ListNode current) {
-		if(current == null || at < 0 || at > current.index) {
+	public /*@nullable*/ ListNode getNode(final int at, ListNode current) {
+		if(at < 0 || at > current.index) {
 			return null;
 		}
 		assert(current != null);		
@@ -134,15 +132,14 @@ public final class LinkedList {
 			//@assert(current.next != null);	
 			current = current.next;
 			//@assert(current != null);
-			//@assert(\invariant_for(current));
 		}
-		assert(current != null);	
+		assert(current != null);
 		if(current.index==at) {
 			return current; 
 		}		
 		assert(current.next == null);
 		if(current.next == null && at == 0) {
-			return current;			
+			return current;//Hier kann ich nicht beweisen, dass die Invariante von current gilt.			
 		}
 		else {
 			return null;
