@@ -125,7 +125,7 @@ final class TreeNode {
 
 class TreeTest {
 	/*@public normal_behaviour
-	   ensures true
+	   ensures true;
 	   ensures (\result).root.left.value == 2;
 	   ensures (\result).root.value == 2;
 	   ensures (\result).root.right.value == 2;

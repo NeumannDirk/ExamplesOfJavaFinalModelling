@@ -123,17 +123,6 @@ public final class LinkedList {
 			return null;
 		}
 		assert(current != null);		
-		
-		
-//		if(current.next == null) {
-//			assert(at == 0);
-//				return current;
-////			}
-//		}
-//		assert(current != null);
-//		assert(current.next != null);
-		
-		
 		/*@maintaining (current != null);
 		   maintaining \invariant_for(current);
 		   maintaining (current.next != null || current.index == 0);
