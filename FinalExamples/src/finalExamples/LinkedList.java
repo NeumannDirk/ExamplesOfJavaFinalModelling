@@ -139,7 +139,7 @@ public final class LinkedList {
 		}		
 		assert(current.next == null);
 		if(current.next == null && at == 0) {
-			return current;//Hier kann ich nicht beweisen, dass die Invariante von current gilt.			
+			return current;//Hier kann ich nicht beweisen, dass die Invariante von current gilt...			
 		}
 		else {
 			return null;
