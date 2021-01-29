@@ -174,6 +174,63 @@ final class ListNode {
 		}		
 	}
 	/*@public normal_behaviour
+	   requires \invariant_for(current);
+	   requires (current != null);
+	   requires \invariant_for(current.next);
+	   requires (at >= 0);
+	   requires (at < current.index);
+	   ensures ((\result).index == at);	   
+//	   ensures \invariant_for(current);
+//	   ensures \invariant_for(current.next);
+//	   ensures (current == \old(current));
+//	   ensures (current.next == \old(current.next));
+	   accessible \nothing;     
+	   assignable \strictly_nothing;
+	   
+	   also
+	   
+	   public normal_behaviour
+	   requires (current == null);
+	   ensures (\result == null);
+	   assignable \strictly_nothing;
+	   accessible \nothing;
+	   
+	   also
+	   
+	   public normal_behaviour
+	   requires (current != null);
+	   requires \invariant_for(current);
+	   requires (at >= current.index);
+	   ensures (at > current.index) ==> (\result == null);
+	   ensures (at == current.index) ==> ((\result == current) && ((\result).index == at));	   
+	   assignable \strictly_nothing;
+	   accessible \nothing;
+	 */
+	final public static /*@nullable*/ListNode get(final int at, final /*@nullable*/ListNode current){	
+		if (current == null || at < 0 || at > current.index || ((at < current.index) && (current.next == null))) {
+			return null;
+		} else if (at == current.index) {
+			return current;
+		} else {
+			assert (current.next != null);
+			assert (at < current.index);
+			assert (at <= current.next.index);
+			assert (current.index == (current.next.index + 1));
+			ListNode erg = null;
+			try {
+				erg = get(at, current.next);				
+			}
+			catch(Throwable e) {
+				erg = null;
+			}
+			finally {
+				return erg;
+			}
+		}
+	}
+	
+	
+	/*@public normal_behaviour
 	   requires (at < this.index && this.next != null);
 	   ensures (at < this.index);  
 	   accessible \nothing;     
@@ -196,7 +253,7 @@ final class ListNode {
 	   assignable \strictly_nothing;
 	   accessible \nothing;
 	 */
-	final public /*@nullable*/ListNode get(final int at) {
+	final public /*@nullable*/ListNode get2(final int at) {
 		try {		
 			if(at < 0 || at > this.index) {
 				return null;
@@ -212,7 +269,7 @@ final class ListNode {
 				assert(at <= this.next.index);
 				assert(this.next != null);
 				//@assert(\invariant_for(this.next));	 
-				return this.next.get(at);	
+				return this.next.get2(at);	
 			}		
 		}
 		catch (Throwable e) {
