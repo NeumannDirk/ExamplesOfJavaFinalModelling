@@ -1,5 +1,4 @@
-package finalExamples;
-
+package old_finalExamples;
 public final class IncrementTree {
 
 	private final /*@nullable spec_public@*/ TreeNode root;
@@ -50,17 +49,35 @@ public final class IncrementTree {
 			}
 		}
 	}
+	
 
-//	/*@public normal_behaviour
-//	   ensures (small == null && big == null) ==> (\result == true);
-//	   ensures (small == null && big != null) ==> (\result == false);
-//	   ensures (small != null && big == null) ==> (\result == false);
-//       ensures (small.value != (big.value - 1)) ==> (\result == false);
-//       
-////       ensures !isBiggerByOne(small.left, big.left) ==> (\result == false);
-////       ensures !isBiggerByOne(small.right, big.right) ==> (\result == false);       
-//	   assignable \strictly_nothing;
-//	 */
+	/*@public normal_behaviour
+	   ensures (small == null && big == null) ==> (\result == true);
+	   ensures (small == null && big != null) ==> (\result == false);
+	   ensures (small != null && big == null) ==> (\result == false);
+	   ensures (small != null && big != null) ==> isBiggerByOne(small, big);
+	   assignable \strictly_nothing;
+	 */
+	public static boolean TreeBiggerByOne(/*@nullable@*/IncrementTree small, /*@nullable@*/IncrementTree big) {
+//		Stack<TreeNode> s = new Stack<TreeNode>();
+		while (true) {
+			break;
+		}
+		return true;
+	}
+
+	/*@public normal_behaviour
+	   ensures (small == null && big == null) ==> (\result == true);
+	   ensures (small == null && big != null) ==> (\result == false);
+	   ensures (small != null && big == null) ==> (\result == false);	   
+	   ensures (small != null && big != null) ==> (
+	   		((small.value != (big.value - 1)) ==> (\result == false)) &&
+	   		((small.value == (big.value - 1)) ==> (isBiggerByOne(small.left, big.left) && isBiggerByOne(small.right, big.right)))
+	   );	          
+       ensures !isBiggerByOne(small.left, big.left) ==> (\result == false);
+       ensures !isBiggerByOne(small.right, big.right) ==> (\result == false);       
+	   assignable \strictly_nothing;
+	 */
 	public static boolean isBiggerByOne(/*@nullable@*/TreeNode small, /*@nullable@*/TreeNode big) {
 		if(small == null) {
 			if(big == null) {
@@ -137,4 +154,15 @@ class TreeTest {
 		return second;
 	}
 
+}
+
+final class TreeNodeTuple{
+	public final TreeNode small;
+	public final TreeNode big;
+	
+	public TreeNodeTuple(final /*@nullable*/TreeNode s,final /*@nullable*/TreeNode b) {
+		this.small = s;
+		this.big = b;
+	}
+	
 }

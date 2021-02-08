@@ -1,21 +1,20 @@
 package finalExamples;
 
 public final class LinkedList {	
-		
-	private /*@nullable spec_public@*/ ListNode head = null;
+	public /*@nullable@*/ ListNode head = null;
 
-//	//@instance invariant this.getLength() > -1; 
-
+    //instance invariant (this.head != null) ==> \invariant_for(this.head); 
+	
 	/*@public normal_behaviour
-	  requires (this.head == null) || (this.head.index > -1);	 
+	  requires \invariant_for(this.head);
 	  ensures this.head != null; 
 	  ensures this.head.next == \old(this.head);
 	  ensures this.head.data == val;
-	  ensures this.head.index > -1;
 	  ensures this.head.index == \old(this.getLength()); 
-//	  ensures (\forall int i; -1 < i && i < this.getLength(); this.getAtIndex(i) == \old(this.getAtIndex(i)));
-//	  ensures this.getAtIndex(this.getLength()-1) == val;
-	  ensures this.getLength() == \old(this.getLength())+1;	   
+	  ensures this.getLength() == \old(this.getLength())+1;
+	  ensures (\forall ListNode n; n == \old(n) && n.index == \old(n.index) && n.next == \old(n.next) && n.data == \old(n.data));
+//kann noch nicht bewiesen werden
+	  ensures \invariant_for(this.head);	
 	  assignable this.head;
 	 */	 
 	public void push(final int val) {
@@ -23,17 +22,11 @@ public final class LinkedList {
 	}
 	
 	/*@public normal_behaviour
-	   requires this.head != null;
 	   requires \invariant_for(this.head);
-	   ensures \result > 0;
-	   ensures \result == (this.head.index+1);
-	   assignable \strictly_nothing;
-	   
-	   also
-	   
-	   public normal_behaviour
-	   requires this.head == null;
-	   ensures ((this.head == null) <==> (\result == 0));
+	   ensures this.head != null ==> (\result == (this.head.index+1));
+	   ensures this.head == null <==> (\result == 0); 
+	   ensures \result >= 0;
+	   ensures (\forall ListNode n; n == \old(n) && n.index == \old(n.index) && n.next == \old(n.next) && n.data == \old(n.data));
 	   assignable \strictly_nothing;
 	 */
 	public int getLength() {		
@@ -47,12 +40,17 @@ public final class LinkedList {
 
 	/*@public normal_behaviour
 	  requires this.head != null;
+	  requires \invariant_for(this.head);
 	  ensures \old(this.head.next) == this.head;
 	  ensures \old(this.head.next.data) == this.head.data;
 	  ensures \old(this.head.next.next) == this.head.next;
 	  ensures \old(this.head.next.index) == this.head.index;
-//	  ensures this.getLength() == \old(this.getLength())-1;
+	  ensures this.getLength() == \old(this.getLength())-1;
 	  ensures \result == \old(this.head.data);
+	  ensures (\forall ListNode n;n!=this.head;n == \old(n) && n.index == \old(n.index) && n.next == \old(n.next) && n.data == \old(n.data));
+//kann noch nicht bewiesen werden
+//	  ensures (this.head == null) || \invariant_for(this.head);
+	  assignable this.head;
 	  
 	  also
 	  
@@ -69,81 +67,35 @@ public final class LinkedList {
 		throw new IndexOutOfBoundsException();
 	}
 
-//	/*@public normal_behaviour
-//	   requires -1 < indexp && indexp < this.getLength();
-//	   requires (\exists ListNode n; n.index == indexp);
-//	   requires this.head != null;
-//	   requires \invariant_for(this.head);
-//	   ensures (\result).index == indexp;
-//	   
-//	   also
-//	   
-//	   public exceptional_behavior
-//	   requires indexp < 0 && this.getLength() <= indexp;
-//	   signals_only IndexOutOfBoundsException;
-//	 */
-	public int getAtIndex(final int indexp) {
-		if (indexp < 0 || this.getLength() <= indexp) {
-			throw new IndexOutOfBoundsException("Given index(" + indexp + "is out of list bounds.");
-		} else {
-			ListNode x = this.getNode(indexp, this.head);
-			if (x != null) {
-				return x.data;
-			}
-			else {
-				//Dieser Fall kann nicht auftreten, aber das kann momentan noch nicht bewiesen werden.
-				throw new IndexOutOfBoundsException("Given index(" + indexp + "is out of list bounds."); 
-			}
-		}
-	}	
-	
-	/*@public normal_behaviour
-	   requires current != null;
-	   requires (at >= 0 && at <= current.index);
-	   requires \invariant_for(current);
+	/*@public normal_behaviour	
+	   requires this.head != null;
 	   requires \invariant_for(this.head);
-//	   ensures (at >= 0 && at < this.getLength());
-	   ensures ((\result).index == at);
-       ensures true;         
+	   requires (indexp >= 0) && (indexp <= this.head.index);	   
+	   ensures (\result).index == indexp;
+	   ensures (\result) == this.head.get(indexp); 
+	   ensures \invariant_for(this.head);
 	   assignable \strictly_nothing;
-	   accessible \nothing;
 	   
 	   also
 	   
-	   public normal_behaviour
-	   requires (at < 0 || at > current.index);
-	   ensures \result == null;
-	   assignable \strictly_nothing;
-	   accessible \nothing;
+       public exceptional_behaviour 
+	   requires \invariant_for(this.head);
+	   requires (this.head == null) || (indexp < 0) || (this.head.index < indexp);
+	   signals_only IndexOutOfBoundsException;	 
 	 */
-	public /*@nullable*/ ListNode getNode(final int at, ListNode current) {
-		if(at < 0 || at > current.index) {
-			return null;
-		}
-		assert(current != null);		
-		/*@maintaining (current != null);
-		   maintaining \invariant_for(current);
-		   maintaining (current.next != null || current.index == 0);
-		   maintaining ((current.next != null) ==> (current.index == current.next.index + 1)); 
-		   decreasing current.index;
-		 */
-		while((current.next != null) && (current.index!=at)) {
-			//@assert(current.index == current.next.index + 1);
-			//@assert(current.next != null);	
-			current = current.next;
-			//@assert(current != null);
-		}
-		assert(current != null);
-		if(current.index==at) {
-			return current; 
-		}		
-		assert(current.next == null);
-		if(current.next == null && at == 0) {
-			return current;//Hier kann ich nicht beweisen, dass die Invariante von current gilt...			
+	public /*@nullable*/ListNode getAtIndex(final int indexp) {
+		if((this.head == null) || (indexp < 0) || (this.head.index < indexp)){
+			throw new IndexOutOfBoundsException();
 		}
 		else {
-			return null;
-		}		
+			assert(this.head != null);
+			assert(indexp <= this.head.index);
+			assert(indexp >= 0);		
+			ListNode n = this.head.get(indexp);
+			assert(n != null);
+			assert(n.index == indexp);
+			return n;
+		}
 	}
 }
 
@@ -155,12 +107,16 @@ final class ListNode {
 	//@instance invariant (this.index > -1);
 	//@instance invariant (this.next != null) ==> (this.index == this.next.index + 1);
 	//@instance invariant (this.next == null) <==> (this.index == 0);
+    //@instance invariant (this.next != null) ==> \invariant_for(next);
 	  
 	/*@public normal_behaviour
-	  requires (nextp == null) || (nextp.index > -1);
+	  requires (nextp == null) || \invariant_for(nextp);
 	  ensures this.next == nextp;
 	  ensures this.data == data;
-	  ensures true;
+	  ensures true;	  
+	  ensures (nextp == null) || \invariant_for(nextp);
+	  ensures \invariant_for(this);
+	  ensures (this.next == null) || \invariant_for(this.next);
 	  assignable this.data, this.next, this.index;
 	 */
 	public ListNode(final int data, final /*@nullable@*/ListNode nextp) {
@@ -173,109 +129,29 @@ final class ListNode {
 			this.index = nextp.index+1;
 		}		
 	}
-	/*@public normal_behaviour
-	   requires \invariant_for(current);
-	   requires (current != null);
-	   requires \invariant_for(current.next);
-	   requires (at >= 0);
-	   requires (at < current.index);
-	   ensures ((\result).index == at);	   
-//	   ensures \invariant_for(current);
-//	   ensures \invariant_for(current.next);
-//	   ensures (current == \old(current));
-//	   ensures (current.next == \old(current.next));
-	   accessible \nothing;     
-	   assignable \strictly_nothing;
-	   
-	   also
-	   
-	   public normal_behaviour
-	   requires (current == null);
-	   ensures (\result == null);
-	   assignable \strictly_nothing;
-	   accessible \nothing;
-	   
-	   also
-	   
-	   public normal_behaviour
-	   requires (current != null);
-	   requires \invariant_for(current);
-	   requires (at >= current.index);
-	   ensures (at > current.index) ==> (\result == null);
-	   ensures (at == current.index) ==> ((\result == current) && ((\result).index == at));	   
-	   assignable \strictly_nothing;
-	   accessible \nothing;
-	 */
-	final public static /*@nullable*/ListNode get(final int at, final /*@nullable*/ListNode current){	
-		if (current == null || at < 0 || at > current.index || ((at < current.index) && (current.next == null))) {
-			return null;
-		} else if (at == current.index) {
-			return current;
-		} else {
-			assert (current.next != null);
-			assert (at < current.index);
-			assert (at <= current.next.index);
-			assert (current.index == (current.next.index + 1));
-			ListNode erg = null;
-			try {
-				erg = get(at, current.next);				
-			}
-			catch(Throwable e) {
-				erg = null;
-			}
-			finally {
-				return erg;
-			}
-		}
-	}
-	
-	
-	/*@public normal_behaviour
-	   requires (at < this.index && this.next != null);
-	   ensures (at < this.index);  
-	   accessible \nothing;     
-	   assignable \strictly_nothing;
-	   
-	   also
-	   
-	   public normal_behaviour
-	   requires (at == this.index);	     
-	   ensures ((\result).index == at);
-	   assignable \strictly_nothing;
-	   accessible \nothing;
-	   
-	   also
-	   
-	   public normal_behaviour
-	   requires (at < 0 || at > this.index || (at < this.index && this.next == null));
-	   ensures \result == null;
-	   ensures (at < 0 || at > this.index);
-	   assignable \strictly_nothing;
-	   accessible \nothing;
-	 */
-	final public /*@nullable*/ListNode get2(final int at) {
-		try {		
-			if(at < 0 || at > this.index) {
-				return null;
-			}
-			else if (at == this.index){
-				return this;
-			}
-			else {
-				if(this.next == null) {
-					return null;
-				}
-				assert(at < this.index);
-				assert(at <= this.next.index);
-				assert(this.next != null);
-				//@assert(\invariant_for(this.next));	 
-				return this.next.get2(at);	
-			}		
-		}
-		catch (Throwable e) {
-			return null;
-		}
-	}
+    /*@public normal_behaviour
+       ensures at == index ==> \result == this;
+       ensures 0 < at && at < index ==> \result == next.get(at);
+       ensures 0 <= at && at <= index ==> \result != null;
+       ensures 0 > at || at > index ==> \result == null;
+       ensures \result != null ==> (\result).index == at;
+       ensures_free \result == get(at);
+       measured_by this.index;
+       assignable \strictly_nothing;
+       accessible \nothing;
+     */
+  final public /*@nullable*/ ListNode get(final int at) {
+	  if(0 > at || at > this.index) {
+		  return null;
+	  }
+	  else if(at == this.index) {
+          return this;
+      } else if(this.next != null) {
+          return this.next.get(at);
+      } else {
+          return null;
+      }
+  }
 }
 
 
@@ -285,17 +161,41 @@ class ListTest{
 	   ensures \result == 23;
 	 */
 	public static int test() {
-		LinkedList ll = new LinkedList();
-		ll.push(23);	
-		ll.push(23);
+		LinkedList l = new LinkedList();
+		
+		l.push(23);	
+		assert(l.getLength() == 1);
+		assert(l.head.index == 0);
+		assert(l.head.get(0) == l.head);
+		assert(l.head.get(0).data == 23);
+//		assert(l.getAtIndex(0) == l.head);	
+		
+		l.push(42);
+		assert(l.getLength() == 2);
+		assert(l.head.index == 1);
+		assert(l.head.get(1) == l.head);
+		assert(l.head.get(1).data == 42);	
+//		assert(l.head.get(0).data == 23);	
+		assert(l.head.next.index == 0);
+		assert(l.head.next.data == 23);
+		
 		try {
-			ll.pop();
-//			assert(ll.pop() == 23);
-//			return 23;
-			return ll.pop();
+			l.pop();
+			assert(l.head.index == 0);
+			assert(l.head.get(0) == l.head);
+			assert(l.head.get(0).data == 23);
+			return l.pop();
 			}
 		catch(Exception e) {
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	/*@public normal_behaviour
+	   ensures true;
+	 */
+	public void test2() {
+		LinkedList l = new LinkedList();
+		l.push(23);
+		l.push(42);
+	}	
 }
