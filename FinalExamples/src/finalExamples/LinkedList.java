@@ -2,19 +2,18 @@ package finalExamples;
 
 public final class LinkedList {	
 	public /*@nullable@*/ ListNode head = null;
-
-    //instance invariant (this.head != null) ==> \invariant_for(this.head); 
+    //@instance invariant (this.head != null) ==> \invariant_for(this.head); 
 	
 	/*@public normal_behaviour
-	  requires \invariant_for(this.head);
 	  ensures this.head != null; 
 	  ensures this.head.next == \old(this.head);
 	  ensures this.head.data == val;
-	  ensures this.head.index == \old(this.getLength()); 
+	  ensures this.head.index == \old(this.getLength());   	 
 	  ensures this.getLength() == \old(this.getLength())+1;
 	  ensures (\forall ListNode n; n == \old(n) && n.index == \old(n.index) && n.next == \old(n.next) && n.data == \old(n.data));
-//kann noch nicht bewiesen werden
-	  ensures \invariant_for(this.head);	
+	  ensures this.getAtIndex(this.head.index) == head; 
+	  ensures (\old(this.head) != null) ==> (\old(this.getAtIndex(this.head.index)) == \old(this.head)); 
+//	  ensures (\forall int i; i < this.head.index; \old(this.getAtIndex(i)) == this.getAtIndex(i));
 	  assignable this.head;
 	 */	 
 	public void push(final int val) {
@@ -22,7 +21,6 @@ public final class LinkedList {
 	}
 	
 	/*@public normal_behaviour
-	   requires \invariant_for(this.head);
 	   ensures this.head != null ==> (\result == (this.head.index+1));
 	   ensures this.head == null <==> (\result == 0); 
 	   ensures \result >= 0;
@@ -40,7 +38,6 @@ public final class LinkedList {
 
 	/*@public normal_behaviour
 	  requires this.head != null;
-	  requires \invariant_for(this.head);
 	  ensures \old(this.head.next) == this.head;
 	  ensures \old(this.head.next.data) == this.head.data;
 	  ensures \old(this.head.next.next) == this.head.next;
@@ -48,8 +45,6 @@ public final class LinkedList {
 	  ensures this.getLength() == \old(this.getLength())-1;
 	  ensures \result == \old(this.head.data);
 	  ensures (\forall ListNode n;n!=this.head;n == \old(n) && n.index == \old(n.index) && n.next == \old(n.next) && n.data == \old(n.data));
-//kann noch nicht bewiesen werden
-//	  ensures (this.head == null) || \invariant_for(this.head);
 	  assignable this.head;
 	  
 	  also
@@ -69,23 +64,24 @@ public final class LinkedList {
 
 	/*@public normal_behaviour	
 	   requires this.head != null;
-	   requires \invariant_for(this.head);
 	   requires (indexp >= 0) && (indexp <= this.head.index);	   
 	   ensures (\result).index == indexp;
 	   ensures (\result) == this.head.get(indexp); 
-	   ensures \invariant_for(this.head);
+	   ensures (indexp == this.head.index) ==> \result == this.head; 
+       ensures_free \result == this.head.get(indexp);
+       ensures (\result) != null;
 	   assignable \strictly_nothing;
 	   
 	   also
 	   
        public exceptional_behaviour 
-	   requires \invariant_for(this.head);
 	   requires (this.head == null) || (indexp < 0) || (this.head.index < indexp);
 	   signals_only IndexOutOfBoundsException;	 
+	   assignable \nothing;
 	 */
 	public /*@nullable*/ListNode getAtIndex(final int indexp) {
 		if((this.head == null) || (indexp < 0) || (this.head.index < indexp)){
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException();//this.exception;
 		}
 		else {
 			assert(this.head != null);
@@ -108,7 +104,8 @@ final class ListNode {
 	//@instance invariant (this.next != null) ==> (this.index == this.next.index + 1);
 	//@instance invariant (this.next == null) <==> (this.index == 0);
     //@instance invariant (this.next != null) ==> \invariant_for(next);
-	  
+	//@accessible \inv: \nothing;  
+	
 	/*@public normal_behaviour
 	  requires (nextp == null) || \invariant_for(nextp);
 	  ensures this.next == nextp;
@@ -160,30 +157,29 @@ class ListTest{
 	   ensures true;
 	   ensures \result == 23;
 	 */
-	public static int test() {
+	public static int test1() {
 		LinkedList l = new LinkedList();
 		
-		l.push(23);	
+		l.push(23);
 		assert(l.getLength() == 1);
 		assert(l.head.index == 0);
-		assert(l.head.get(0) == l.head);
-		assert(l.head.get(0).data == 23);
-//		assert(l.getAtIndex(0) == l.head);	
+		assert(l.getAtIndex(0) == l.head);
+		assert(l.getAtIndex(0).data == 23);
 		
 		l.push(42);
 		assert(l.getLength() == 2);
 		assert(l.head.index == 1);
-		assert(l.head.get(1) == l.head);
-		assert(l.head.get(1).data == 42);	
-//		assert(l.head.get(0).data == 23);	
+		assert(l.getAtIndex(1) == l.head);
+		assert(l.getAtIndex(1).data == 42);
 		assert(l.head.next.index == 0);
 		assert(l.head.next.data == 23);
+//		assert(l.getAtIndex(0).data == 23);
 		
 		try {
 			l.pop();
 			assert(l.head.index == 0);
 			assert(l.head.get(0) == l.head);
-			assert(l.head.get(0).data == 23);
+			assert(l.getAtIndex(0).data == 23);
 			return l.pop();
 			}
 		catch(Exception e) {
@@ -193,9 +189,21 @@ class ListTest{
 	/*@public normal_behaviour
 	   ensures true;
 	 */
-	public void test2() {
+	public void test2() {		
 		LinkedList l = new LinkedList();
-		l.push(23);
-		l.push(42);
+		l.push(100);
+		{
+			ListNode n = l.getAtIndex(0);
+			if (n != null) {
+				assert (n.data == 100);
+			}
+		}
+		l.push(200);
+		{
+			ListNode n = l.getAtIndex(0);
+			if (n != null) {
+//				assert (n.data == 100);
+			}
+		}
 	}	
 }
